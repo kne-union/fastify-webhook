@@ -5,6 +5,7 @@ module.exports = fp(async (fastify, options) => {
   options = Object.assign(
     {},
     {
+      prefix: '/api/webhook',
       dbTableNamePrefix: 't_',
       name: 'webhook',
       hooks: {},
