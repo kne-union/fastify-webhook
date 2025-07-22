@@ -6,7 +6,7 @@ module.exports = fp(async (fastify, options) => {
     {},
     {
       prefix: '/api/webhook',
-      dbTableNamePrefix: 't_',
+      dbTableNamePrefix: 't_webhook_',
       name: 'webhook',
       hooks: {},
       getUserAuthenticate: () => {
