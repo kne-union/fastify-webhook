@@ -1,7 +1,7 @@
 const fp = require('fastify-plugin');
 
 module.exports = fp(async (fastify, options) => {
-  const { services } = fastify.project;
+  const { services } = fastify[options.name];
   const userAuthenticate = options.getUserAuthenticate(),
     adminAuthenticate = options.getAdminAuthenticate();
   fastify.post(
@@ -61,14 +61,14 @@ module.exports = fp(async (fastify, options) => {
     `${options.prefix}/invoke/:type`,
     {
       schema: {
-        summary: '调用webhook post请求'
-      },
-      params: {
-        type: 'object',
-        properties: {
-          type: { type: 'string' }
-        },
-        required: ['type']
+        summary: '调用webhook post请求',
+        params: {
+          type: 'object',
+          properties: {
+            type: { type: 'string' }
+          },
+          required: ['type']
+        }
       }
     },
     async request => {
@@ -91,14 +91,14 @@ module.exports = fp(async (fastify, options) => {
     `${options.prefix}/invoke/:type`,
     {
       schema: {
-        summary: '调用webhook get请求'
-      },
-      params: {
-        type: 'object',
-        properties: {
-          type: { type: 'string' }
-        },
-        required: ['type']
+        summary: '调用webhook get请求',
+        params: {
+          type: 'object',
+          properties: {
+            type: { type: 'string' }
+          },
+          required: ['type']
+        }
       }
     },
     async request => {
@@ -114,6 +114,48 @@ module.exports = fp(async (fastify, options) => {
           }
         )
       );
+    }
+  );
+
+  fastify.get(
+    `${options.prefix}/invoke-record`,
+    {
+      onRequest: [userAuthenticate, adminAuthenticate],
+      schema: {
+        summary: '获取webhook调用记录',
+        query: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            currentPage: { type: 'number', default: 1 },
+            perPage: { type: 'number', default: 10 }
+          },
+          required: ['id']
+        }
+      }
+    },
+    async request => {
+      return services.invokeRecord(request.query);
+    }
+  );
+
+  fastify.post(
+    `${options.prefix}/remove`,
+    {
+      onRequest: [userAuthenticate, adminAuthenticate],
+      schema: {
+        summary: '删除webhook',
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' }
+          },
+          required: ['id']
+        }
+      }
+    },
+    async request => {
+      return services.remove(request.body);
     }
   );
 });

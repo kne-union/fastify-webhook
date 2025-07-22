@@ -30,11 +30,12 @@ module.exports = fp(async (fastify, options) => {
   const list = async () => {
     const list = await models.webhook.findAll();
     const mapping = groupBy(
-      list.map(item => {
-        const hmac = crypto.createHmac('sha256', item.type);
-        hmac.update(`${item.name}|${item.expire ? item.expire.getTime() : 0}`);
-        const signature = hmac.digest('hex');
-        return Object.assign({}, item.get({ plain: true }), {
+      list.map(webhook => {
+        const signature = crypto
+          .createHash('md5')
+          .update(`${webhook.name}|${webhook.expire ? webhook.expire.getTime() : 0}`)
+          .digest('hex');
+        return Object.assign({}, webhook.get({ plain: true }), {
           signature
         });
       }),
@@ -49,10 +50,17 @@ module.exports = fp(async (fastify, options) => {
     );
   };
 
-  const invokeRecord = async ({ id }) => {
-    return await models.invocation.findAll({
-      where: { webhookId: id }
+  const invokeRecord = async ({ id, currentPage, perPage }) => {
+    const { rows, count } = await models.invocation.findAndCountAll({
+      where: { webhookId: id },
+      limit: perPage,
+      offset: (currentPage - 1) * perPage
     });
+
+    return {
+      pageData: rows,
+      totalCount: count
+    };
   };
 
   const setStatus = async ({ id, status }) => {
@@ -77,9 +85,11 @@ module.exports = fp(async (fastify, options) => {
     let currentWebhook = null;
     for (const webhook of list) {
       const signature = get({ headers, body, query }, webhook.signatureLocation);
-      const hmac = crypto.createHmac('sha256', type);
-      hmac.update(`${webhook.name}|${webhook.expire ? webhook.expire.getTime() : 0}`);
-      if (hmac.digest('hex') === signature) {
+      const md5 = crypto
+        .createHash('md5')
+        .update(`${webhook.name}|${webhook.expire ? webhook.expire.getTime() : 0}`)
+        .digest('hex');
+      if (md5 === signature) {
         currentWebhook = webhook;
         break;
       }
