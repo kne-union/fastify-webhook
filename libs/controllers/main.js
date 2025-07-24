@@ -15,7 +15,9 @@ module.exports = fp(async (fastify, options) => {
           properties: {
             name: { type: 'string' },
             type: { type: 'string' },
-            expire: { type: 'string', format: 'date-time' }
+            expire: { type: 'string', format: 'date-time' },
+            signatureLocation: { type: 'string' },
+            inputLocation: { type: 'string' }
           },
           required: ['name', 'type']
         }

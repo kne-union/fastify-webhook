@@ -7,7 +7,7 @@ const get = require('lodash/get');
 module.exports = fp(async (fastify, options) => {
   const { models } = fastify[options.name];
 
-  const create = async ({ name, type, expire, userId }) => {
+  const create = async ({ name, type, expire, userId, signatureLocation, inputLocation }) => {
     if (!options.hooks[type]) {
       throw new Error(`Hook ${type} not allowed`);
     }
@@ -15,7 +15,9 @@ module.exports = fp(async (fastify, options) => {
       name,
       type,
       expire,
-      userId
+      userId,
+      signatureLocation,
+      inputLocation
     });
   };
 
