@@ -15,6 +15,7 @@ function generateSignature(key, body) {
 
 module.exports = fp(async (fastify, options) => {
   const { models } = fastify[options.name];
+  const { Op } = fastify.sequelize.Sequelize;
 
   const create = async ({ name, type, expire, userId, signatureLocation, inputLocation, shouldEncryptVerify }) => {
     if (!options.hooks[type]) {
@@ -64,7 +65,11 @@ module.exports = fp(async (fastify, options) => {
 
   const invokeRecord = async ({ id, currentPage, perPage }) => {
     const { rows, count } = await models.invocation.findAndCountAll({
-      where: { webhookClientId: id },
+      where: id
+        ? { webhookClientId: id }
+        : {
+            webhookClientId: { [Op.is]: null }
+          },
       limit: perPage,
       offset: (currentPage - 1) * perPage
     });
