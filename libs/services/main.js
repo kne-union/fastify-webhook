@@ -145,6 +145,7 @@ module.exports = fp(async (fastify, options) => {
       const result = await options.hooks[currentWebhook.type]({ input });
       await models.invocation.create({
         input,
+        type,
         result,
         webhookClientId: currentWebhook.id,
         status: 'success',
@@ -155,6 +156,7 @@ module.exports = fp(async (fastify, options) => {
     } catch (e) {
       await models.invocation.create({
         input,
+        type,
         result: e.toString(),
         webhookClientId: currentWebhook.id,
         status: 'failed',
