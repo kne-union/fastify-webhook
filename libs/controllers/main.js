@@ -63,6 +63,9 @@ module.exports = fp(async (fastify, options) => {
   fastify.post(
     `${options.prefix}/invoke/:type`,
     {
+      config: {
+        rawBody: true
+      },
       schema: {
         summary: '调用webhook post请求',
         params: {
@@ -76,13 +79,14 @@ module.exports = fp(async (fastify, options) => {
     },
     async request => {
       const { type } = request.params;
+
       return services.invoke(
         Object.assign(
           {},
           { type },
           {
             body: request.body,
-            rawBody: request[options.rawBodyField || 'rowBody'],
+            rawBody: request[options.rawBodyField || 'rawBody'],
             headers: request.headers,
             query: request.query
           }
@@ -112,8 +116,6 @@ module.exports = fp(async (fastify, options) => {
           {},
           { type },
           {
-            body: request.body,
-            rawBody: request[options.rawBodyField || 'rowBody'],
             headers: request.headers,
             query: request.query
           }
