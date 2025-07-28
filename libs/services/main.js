@@ -104,11 +104,14 @@ module.exports = fp(async (fastify, options) => {
         .createHash('md5')
         .update(`${webhook.name}|${webhook.expire ? webhook.expire.getTime() : 0}`)
         .digest('hex');
-      if (webhook.shouldEncryptVerify && generateSignature(md5, rawBody) === signature) {
+
+      const shouldEncryptVerify = webhook.inputLocation === 'body' && webhook.shouldEncryptVerify;
+
+      if (shouldEncryptVerify && generateSignature(md5, rawBody) === signature) {
         currentWebhook = webhook;
         break;
       }
-      if (!webhook.shouldEncryptVerify) {
+      if (!shouldEncryptVerify) {
         if (md5 === signature) {
           currentWebhook = webhook;
           break;
