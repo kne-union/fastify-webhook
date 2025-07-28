@@ -6,9 +6,10 @@ module.exports = fp(async (fastify, options) => {
     {},
     {
       prefix: '/api/webhook',
-      dbTableNamePrefix: 't_webhook_',
+      dbTableNamePrefix: 't_',
       name: 'webhook',
       hooks: {},
+      rawBodyField: 'rawBody',
       getUserAuthenticate: () => {
         if (!fastify.account) {
           throw new Error('fastify-account plugin must be registered before fastify-trtc,or set options.getUserAuthenticate');
@@ -40,6 +41,7 @@ module.exports = fp(async (fastify, options) => {
         'models',
         await fastify.sequelize.addModels(path.resolve(__dirname, './libs/models'), {
           prefix: options.dbTableNamePrefix,
+          modelPrefix: options.name,
           getUserModel: options.getUserModel
         })
       ],

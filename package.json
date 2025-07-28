@@ -1,6 +1,6 @@
 {
   "name": "@kne/fastify-webhook",
-  "version": "0.1.2",
+  "version": "0.1.3-alpha.0",
   "description": "实现一个webhook功能.",
   "main": "index.js",
   "scripts": {
