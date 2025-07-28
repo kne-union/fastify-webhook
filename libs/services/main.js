@@ -63,12 +63,12 @@ module.exports = fp(async (fastify, options) => {
     );
   };
 
-  const invokeRecord = async ({ id, currentPage, perPage }) => {
+  const invokeRecord = async ({ id, type, currentPage, perPage }) => {
     const { rows, count } = await models.invocation.findAndCountAll({
       where: id
         ? { webhookClientId: id }
         : {
-            webhookClientId: { [Op.is]: null }
+            webhookClientId: { [Op.is]: null, type }
           },
       limit: perPage,
       offset: (currentPage - 1) * perPage
@@ -133,6 +133,7 @@ module.exports = fp(async (fastify, options) => {
           rawBody,
           query
         },
+        type,
         status: 'failed',
         startTime,
         endTime: new Date()
@@ -144,6 +145,7 @@ module.exports = fp(async (fastify, options) => {
       const result = await options.hooks[currentWebhook.type]({ input });
       await models.invocation.create({
         input,
+        type,
         result,
         webhookClientId: currentWebhook.id,
         status: 'success',
@@ -154,6 +156,7 @@ module.exports = fp(async (fastify, options) => {
     } catch (e) {
       await models.invocation.create({
         input,
+        type,
         result: e.toString(),
         webhookClientId: currentWebhook.id,
         status: 'failed',

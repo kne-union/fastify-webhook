@@ -15,6 +15,10 @@ module.exports = ({ DataTypes, options }) => {
         type: DataTypes.JSON,
         comment: '调用参数'
       },
+      type: {
+        type: DataTypes.STRING,
+        comment: '调用类型'
+      },
       status: {
         type: DataTypes.ENUM('success', 'failed'),
         comment: '调用返回状态'
