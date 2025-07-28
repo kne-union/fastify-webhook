@@ -24,10 +24,9 @@ module.exports = ({ DataTypes, options }) => {
         comment: '调用结果'
       }
     },
-    associate: ({ invocation, webhook }) => {
-      invocation.belongsTo(webhook, {
-        allowNull: false,
-        comment: 'webhook'
+    associate: ({ invocation, client }) => {
+      invocation.belongsTo(client, {
+        comment: 'webhook调用端'
       });
     },
     options: {

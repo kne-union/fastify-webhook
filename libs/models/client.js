@@ -39,14 +39,14 @@ module.exports = ({ DataTypes, options }) => {
         defaultValue: 'open'
       }
     },
-    associate: ({ webhook }) => {
-      webhook.belongsTo(options.getUserModel(), {
+    associate: ({ client }) => {
+      client.belongsTo(options.getUserModel(), {
         foreignKey: 'userId',
         comment: '创建人'
       });
     },
     options: {
-      comment: 'webhook',
+      comment: 'webhook调用客户端',
       indexes: [
         {
           fields: ['name', 'type', 'deleted_at'],
