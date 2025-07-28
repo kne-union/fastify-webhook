@@ -136,8 +136,7 @@ module.exports = fp(async (fastify, options) => {
             id: { type: 'string' },
             currentPage: { type: 'number', default: 1 },
             perPage: { type: 'number', default: 10 }
-          },
-          required: ['id']
+          }
         }
       }
     },

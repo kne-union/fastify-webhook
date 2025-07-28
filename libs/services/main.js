@@ -15,12 +15,13 @@ function generateSignature(key, body) {
 
 module.exports = fp(async (fastify, options) => {
   const { models } = fastify[options.name];
+  const { Op } = fastify.sequelize.Sequelize;
 
   const create = async ({ name, type, expire, userId, signatureLocation, inputLocation, shouldEncryptVerify }) => {
     if (!options.hooks[type]) {
       throw new Error(`Hook ${type} not allowed`);
     }
-    return await models.webhook.create({
+    return await models.client.create({
       name,
       type,
       expire,
@@ -32,7 +33,7 @@ module.exports = fp(async (fastify, options) => {
   };
 
   const detail = async ({ id }) => {
-    const webhook = await models.webhook.findByPk(id);
+    const webhook = await models.client.findByPk(id);
     if (!webhook) {
       throw new Error('Webhook not found');
     }
@@ -40,7 +41,7 @@ module.exports = fp(async (fastify, options) => {
   };
 
   const list = async () => {
-    const list = await models.webhook.findAll();
+    const list = await models.client.findAll();
     const mapping = groupBy(
       list.map(webhook => {
         const signature = crypto
@@ -64,7 +65,11 @@ module.exports = fp(async (fastify, options) => {
 
   const invokeRecord = async ({ id, currentPage, perPage }) => {
     const { rows, count } = await models.invocation.findAndCountAll({
-      where: { webhookId: id },
+      where: id
+        ? { webhookClientId: id }
+        : {
+            webhookClientId: { [Op.is]: null }
+          },
       limit: perPage,
       offset: (currentPage - 1) * perPage
     });
@@ -88,7 +93,7 @@ module.exports = fp(async (fastify, options) => {
 
   const invoke = async ({ type, headers, body, rawBody, query }) => {
     //signature, input
-    const list = await models.webhook.findAll({ where: { type } });
+    const list = await models.client.findAll({ where: { type } });
 
     if (list.length === 0) {
       throw new Error('Webhook not found');
@@ -118,17 +123,29 @@ module.exports = fp(async (fastify, options) => {
         }
       }
     }
+
+    const startTime = new Date();
     if (!currentWebhook) {
+      await models.invocation.create({
+        input: {
+          headers,
+          body,
+          rawBody,
+          query
+        },
+        status: 'failed',
+        startTime,
+        endTime: new Date()
+      });
       throw new Error('Webhook not registered');
     }
     const input = { headers, body, query }[currentWebhook.inputLocation];
-    const startTime = new Date();
     try {
       const result = await options.hooks[currentWebhook.type]({ input });
       await models.invocation.create({
         input,
         result,
-        webhookId: currentWebhook.id,
+        webhookClientId: currentWebhook.id,
         status: 'success',
         startTime,
         endTime: new Date()
@@ -138,7 +155,7 @@ module.exports = fp(async (fastify, options) => {
       await models.invocation.create({
         input,
         result: e.toString(),
-        webhookId: currentWebhook.id,
+        webhookClientId: currentWebhook.id,
         status: 'failed',
         startTime,
         endTime: new Date()
