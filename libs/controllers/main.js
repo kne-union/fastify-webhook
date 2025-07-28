@@ -17,7 +17,8 @@ module.exports = fp(async (fastify, options) => {
             type: { type: 'string' },
             expire: { type: 'string', format: 'date-time' },
             signatureLocation: { type: 'string' },
-            inputLocation: { type: 'string' }
+            inputLocation: { type: 'string' },
+            shouldEncryptVerify: { type: 'boolean' }
           },
           required: ['name', 'type']
         }
@@ -81,6 +82,7 @@ module.exports = fp(async (fastify, options) => {
           { type },
           {
             body: request.body,
+            rawBody: request[options.rawBodyField || 'rowBody'],
             headers: request.headers,
             query: request.query
           }
@@ -111,6 +113,7 @@ module.exports = fp(async (fastify, options) => {
           { type },
           {
             body: request.body,
+            rawBody: request[options.rawBodyField || 'rowBody'],
             headers: request.headers,
             query: request.query
           }

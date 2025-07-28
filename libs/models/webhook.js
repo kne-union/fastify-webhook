@@ -28,6 +28,11 @@ module.exports = ({ DataTypes, options }) => {
         comment: '过期时间,默认为null，不过期',
         defaultValue: null
       },
+      shouldEncryptVerify: {
+        type: DataTypes.BOOLEAN,
+        comment: '是否加密验证',
+        defaultValue: true
+      },
       status: {
         type: DataTypes.ENUM('open', 'close'),
         comment: '状态',

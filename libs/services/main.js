@@ -4,10 +4,19 @@ const transform = require('lodash/transform');
 const groupBy = require('lodash/groupBy');
 const get = require('lodash/get');
 
+function generateSignature(key, body) {
+  // 创建 HMAC-SHA256 哈希对象
+  const hmac = crypto.createHmac('sha256', key);
+  // 更新哈希内容（支持字符串或 Buffer）
+  hmac.update(body);
+  // 生成 Base64 编码的签名
+  return hmac.digest('base64');
+}
+
 module.exports = fp(async (fastify, options) => {
   const { models } = fastify[options.name];
 
-  const create = async ({ name, type, expire, userId, signatureLocation, inputLocation }) => {
+  const create = async ({ name, type, expire, userId, signatureLocation, inputLocation, shouldEncryptVerify }) => {
     if (!options.hooks[type]) {
       throw new Error(`Hook ${type} not allowed`);
     }
@@ -17,7 +26,8 @@ module.exports = fp(async (fastify, options) => {
       expire,
       userId,
       signatureLocation,
-      inputLocation
+      inputLocation,
+      shouldEncryptVerify
     });
   };
 
@@ -76,7 +86,7 @@ module.exports = fp(async (fastify, options) => {
     await webhook.destroy();
   };
 
-  const invoke = async ({ type, headers, body, query }) => {
+  const invoke = async ({ type, headers, body, rawBody, query }) => {
     //signature, input
     const list = await models.webhook.findAll({ where: { type } });
 
@@ -87,13 +97,22 @@ module.exports = fp(async (fastify, options) => {
     let currentWebhook = null;
     for (const webhook of list) {
       const signature = get({ headers, body, query }, webhook.signatureLocation);
+      if (webhook.expire && webhook.expire < new Date()) {
+        continue;
+      }
       const md5 = crypto
         .createHash('md5')
         .update(`${webhook.name}|${webhook.expire ? webhook.expire.getTime() : 0}`)
         .digest('hex');
-      if (md5 === signature) {
+      if (webhook.shouldEncryptVerify && generateSignature(md5, rawBody) === signature) {
         currentWebhook = webhook;
         break;
+      }
+      if (!webhook.shouldEncryptVerify) {
+        if (md5 === signature) {
+          currentWebhook = webhook;
+          break;
+        }
       }
     }
     if (!currentWebhook) {
