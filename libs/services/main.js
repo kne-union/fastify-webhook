@@ -68,7 +68,8 @@ module.exports = fp(async (fastify, options) => {
       where: id
         ? { webhookClientId: id }
         : {
-            webhookClientId: { [Op.is]: null, type }
+            webhookClientId: { [Op.is]: null },
+            type
           },
       limit: perPage,
       offset: (currentPage - 1) * perPage
