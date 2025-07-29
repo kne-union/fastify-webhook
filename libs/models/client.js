@@ -31,7 +31,7 @@ module.exports = ({ DataTypes, options }) => {
       shouldEncryptVerify: {
         type: DataTypes.BOOLEAN,
         comment: '是否加密验证',
-        defaultValue: true
+        defaultValue: false
       },
       status: {
         type: DataTypes.ENUM('open', 'close'),

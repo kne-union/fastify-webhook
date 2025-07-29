@@ -18,7 +18,7 @@ module.exports = fp(async (fastify, options) => {
             expire: { type: 'string', format: 'date-time' },
             signatureLocation: { type: 'string' },
             inputLocation: { type: 'string' },
-            shouldEncryptVerify: { type: 'boolean' }
+            shouldEncryptVerify: { type: 'boolean', default: false }
           },
           required: ['name', 'type']
         }
